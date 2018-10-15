@@ -1,0 +1,65 @@
+# CMakeLists for elan2split
+#
+# (C) 2015-2016 by Damir Cavar <damir@linguistlist.org>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+cmake_minimum_required(VERSION 3.2.2)
+project(elan2split)
+set(EXECUTABLE_NAME "elan2split")
+
+# make it static
+set(LINK_SEARCH_END_STATIC ON)
+
+# add all .cpp and .h files to source
+file(GLOB ALL_MY_SRC
+    "*.h"
+    "*.cpp")
+
+set(CMAKE_CONFIGURATION_TYPES "Debug" CACHE STRING "" FORCE) # setting two custom configuration types
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}) # "~/Projects/ELANSplit")
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+
+#ICU lib
+#find_package(ICU 4.4 COMPONENTS io i18n REQUIRED)
+#include_directories(${ICU_INCLUDE_DIRS})
+find_library(ICU_LIBUIO   NAMES libicuio.a)
+find_library(ICU_LIBUI18N NAMES libicui18n.a)
+find_library(ICU_LIBUC    NAMES libicuuc.a)
+find_library(ICU_LIBUDATA NAMES libicudata.a)
+
+#add_executable(tables tables.c)
+# target_link_libraries(tables ${ICU_LIBRARIES})
+
+# add Xerces C++ libs for XML parsing
+# find_library(XercesLib NAMES xerces-c PATHS /usr/local/lib)
+find_library(XercesLib NAMES libxerces-c.a)
+
+# add Boost libs
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_STATIC_RUNTIME ON)
+set(Boost_USE_MULTITHREADED  ON)
+set(BOOST_ALL_DYN_LINK       OFF)
+SET(BOOST_MIN_VERSION        "1.57.0") # on Fedora 22
+find_package(Boost ${BOOST_MIN_VERSION} REQUIRED COMPONENTS program_options filesystem system) # date_time system regex)
+if (NOT Boost_FOUND)
+      message(FATAL_ERROR "Fatal error: Boost (version >= ${BOOST_MIN_VERSION}) required.\n")
+endif (NOT Boost_FOUND)
+
+include_directories(${Boost_INCLUDE_DIRS})
+# set(SOURCE_FILES main.cpp MySAX2Handler.cpp MyMiniSAX2Handler.cpp Interval.cpp)
+add_executable(${EXECUTABLE_NAME} ${ALL_MY_SRC}) # ${SOURCE_FILES})
+target_link_libraries(${EXECUTABLE_NAME} ${Boost_LIBRARIES} ${XercesLib} ${ICU_LIBUIO} ${ICU_LIBUI18N} ${ICU_LIBUC} ${ICU_LIBUDATA})
